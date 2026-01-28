@@ -9,9 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build Debug APK
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -22,26 +20,47 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # Gradle installed (for generating wrapper if missing)
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # ✅ Wrapper না থাকলে Gradle 8.2 দিয়ে wrapper বানাবে (AGP 8.2.2 friendly)
+      - name: Detect Android project directory
+        id: detect
+        run: |
+          set -e
+          # Find a directory that contains app/build.gradle (or app/build.gradle.kts)
+          PROJECT_DIR="$(dirname "$(find . -type f \( -path "*/app/build.gradle" -o -path "*/app/build.gradle.kts" \) -print -quit)")"
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "❌ Could not find app/build.gradle or app/build.gradle.kts"
+            echo "Repo structure:"
+            ls -la
+            exit 1
+          fi
+          echo "✅ Detected PROJECT_DIR=$PROJECT_DIR"
+          echo "project_dir=$PROJECT_DIR" >> $GITHUB_OUTPUT
+
       - name: Generate Gradle Wrapper (Gradle 8.2) if missing
+        working-directory: ${{ steps.detect.outputs.project_dir }}
         run: |
           if [ ! -f "./gradlew" ]; then
             gradle wrapper --gradle-version 8.2
           fi
 
       - name: Give gradlew permission
+        working-directory: ${{ steps.detect.outputs.project_dir }}
         run: chmod +x ./gradlew
 
-      # ✅ Android task app module এ থাকে
+      # Debug: task list (helpful if anything still fails)
+      - name: List app tasks
+        working-directory: ${{ steps.detect.outputs.project_dir }}
+        run: ./gradlew :app:tasks --all
+
       - name: Build Debug APK
+        working-directory: ${{ steps.detect.outputs.project_dir }}
         run: ./gradlew :app:assembleDebug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: MyEyeSafeTelegramDemo-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: |
+            **/app/build/outputs/apk/debug/*.apk
