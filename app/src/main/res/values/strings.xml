@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">MyEye Safe Demo</string>
+    <string name="app_title">Telegram Sender (Safe Demo)</string>
+    <string name="hint_bot_token">Telegram Bot Token</string>
+    <string name="hint_chat_id">Chat ID (your own)</string>
+    <string name="hint_message">Message</string>
+    <string name="btn_save">Save Token &amp; Chat ID</string>
+    <string name="btn_send">Send Message</string>
+    <string name="status_idle">Status: idle</string>
+</resources>
+
