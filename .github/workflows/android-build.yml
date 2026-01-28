@@ -22,22 +22,23 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # ✅ Gradle install + cache
+      # Gradle installed (for generating wrapper if missing)
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # ✅ যদি wrapper না থাকে, তাহলে তৈরি করবে
-      - name: Generate Gradle Wrapper (if missing)
+      # ✅ Wrapper না থাকলে Gradle 8.2 দিয়ে wrapper বানাবে (AGP 8.2.2 friendly)
+      - name: Generate Gradle Wrapper (Gradle 8.2) if missing
         run: |
           if [ ! -f "./gradlew" ]; then
-            gradle wrapper
+            gradle wrapper --gradle-version 8.2
           fi
 
       - name: Give gradlew permission
         run: chmod +x ./gradlew
 
+      # ✅ Android task app module এ থাকে
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: ./gradlew :app:assembleDebug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
